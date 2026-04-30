@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DirectGo – Taksi & Ulaşım Hizmetleri</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --anthracite: #1a1c1e;
+    --anthracite-2: #22262a;
+    --anthracite-3: #2d3238;
+    --anthracite-light: #3d4450;
+    --yellow: #f5c518;
+    --yellow-light: #ffe066;
+    --orange: #ff6b2b;
+    --orange-dark: #cc4f18;
+    --white: #f4f1ea;
+    --muted: #7a8290;
+    --border: rgba(255,255,255,0.07);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--anthracite);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.5;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 4rem;
+    background: rgba(26,28,30,0.9);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 4px;
+    color: var(--yellow);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .logo-text {
+    font-size: 2rem;
+  }
+
+  .logo-dot {
+    width: 8px; height: 8px;
+    background: var(--orange);
+    border-radius: 50%;
+    display: inline-block;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2.5rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--white); }
+
+  .nav-cta {
+    background: var(--yellow);
+    color: var(--anthracite) !important;
+    padding: 0.5rem 1.5rem;
+    border-radius: 2px;
+    font-weight: 600 !important;
+    color: var(--anthracite) !important;
+  }
+
+  .nav-cta:hover { background: var(--yellow-light) !important; color: var(--anthracite) !important; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 8rem 4rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(245,197,24,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,197,24,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  .hero-bg-glow {
+    position: absolute;
+    top: -200px; right: -200px;
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(255,107,43,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(245,197,24,0.1);
+    border: 1px solid rgba(245,197,24,0.2);
+    color: var(--yellow);
+    padding: 0.4rem 1rem;
+    border-radius: 2px;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    width: fit-content;
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 10vw, 9rem);
+    line-height: 0.9;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero h1 span.accent { color: var(--yellow); }
+  .hero h1 span.accent-orange { color: var(--orange); }
+
+  .hero-desc {
+    font-size: 1.15rem;
+    color: var(--muted);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 3rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 1rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-primary {
+    background: var(--yellow);
+    color: var(--anthracite);
+    border: none;
+    padding: 0.9rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 2px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-primary:hover {
+    background: var(--yellow-light);
+    transform: translateY(-2px);
+  }
+
+  .btn-secondary {
+    background: transparent;
+    color: var(--white);
+    border: 1px solid var(--border);
+    padding: 0.9rem 2rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border-radius: 2px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+
+  .btn-secondary:hover {
+    border-color: rgba(255,255,255,0.3);
+    background: rgba(255,255,255,0.04);
+  }
+
+  .hero-stats {
+    position: absolute;
+    right: 4rem;
+    bottom: 6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    z-index: 1;
+  }
+
+  .stat-item {
+    text-align: right;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    color: var(--yellow);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .hero-car-art {
+    position: absolute;
+    right: 4rem;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 480px;
+    height: 300px;
+    z-index: 0;
+    opacity: 0.15;
+  }
+
+  /* SERVICES SECTION */
+  .section {
+    padding: 8rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-header {
+    margin-bottom: 4rem;
+  }
+
+  .section-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: var(--orange);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: inline-block;
+    width: 24px;
+    height: 2px;
+    background: var(--orange);
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    line-height: 1;
+    letter-spacing: 2px;
+    color: var(--white);
+  }
+
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5px;
+    background: var(--border);
+    border: 1.5px solid var(--border);
+  }
+
+  .service-card {
+    background: var(--anthracite-2);
+    padding: 3rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .service-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0;
+    height: 3px;
+    background: var(--yellow);
+    transition: width 0.4s ease;
+  }
+
+  .service-card:hover::before { width: 100%; }
+  .service-card:hover { background: var(--anthracite-3); }
+
+  .service-icon {
+    width: 56px; height: 56px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+  }
+
+  .icon-taxi { background: rgba(245,197,24,0.12); }
+  .icon-move { background: rgba(255,107,43,0.12); }
+  .icon-road { background: rgba(61,68,80,0.5); }
+  .icon-vip { background: rgba(245,197,24,0.06); border: 1px solid rgba(245,197,24,0.15); }
+
+  .service-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-bottom: 0.75rem;
+  }
+
+  .service-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 0.75rem;
+  }
+
+  .service-desc {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 340px;
+  }
+
+  .service-arrow {
+    position: absolute;
+    top: 3rem; right: 3rem;
+    width: 36px; height: 36px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 1rem;
+    transition: all 0.2s;
+  }
+
+  .service-card:hover .service-arrow {
+    background: var(--yellow);
+    color: var(--anthracite);
+    border-color: var(--yellow);
+  }
+
+  /* BOOKING SECTION */
+  .booking-section {
+    background: var(--anthracite-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 8rem 4rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .booking-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6rem;
+    align-items: start;
+  }
+
+  .booking-form-wrapper {
+    background: var(--anthracite);
+    border: 1px solid var(--border);
+    padding: 2.5rem;
+    border-radius: 2px;
+  }
+
+  .form-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    color: var(--yellow);
+  }
+
+  .form-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: var(--anthracite-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.75rem 1rem;
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .form-input:focus, .form-select:focus {
+    border-color: rgba(245,197,24,0.4);
+  }
+
+  .form-input::placeholder { color: rgba(122,130,144,0.6); }
+
+  .form-select option { background: var(--anthracite-2); }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .service-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 1.5rem;
+    background: var(--anthracite-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .service-tab {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    color: var(--muted);
+    border: none;
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+    border-right: 1px solid var(--border);
+  }
+
+  .service-tab:last-child { border-right: none; }
+
+  .service-tab.active {
+    background: var(--yellow);
+    color: var(--anthracite);
+  }
+
+  .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0.5rem 0;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+
+  .form-divider::before, .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .price-estimate {
+    background: rgba(245,197,24,0.06);
+    border: 1px solid rgba(245,197,24,0.15);
+    border-radius: 2px;
+    padding: 1rem 1.25rem;
+    margin-top: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .price-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .price-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    color: var(--yellow);
+    letter-spacing: 2px;
+  }
+
+  .price-note {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  .btn-book {
+    width: 100%;
+    background: var(--orange);
+    color: var(--white);
+    border: none;
+    padding: 1rem;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 3px;
+    cursor: pointer;
+    border-radius: 2px;
+    margin-top: 1.25rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-book:hover {
+    background: var(--orange-dark);
+    transform: translateY(-1px);
+  }
+
+  /* HOW IT WORKS */
+  .steps-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .step-item {
+    padding: 2.5rem 2rem;
+    border-right: 1px solid var(--border);
+    position: relative;
+  }
+
+  .step-item:last-child { border-right: none; }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: rgba(245,197,24,0.1);
+    line-height: 1;
+    margin-bottom: 1rem;
+  }
+
+  .step-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+  }
+
+  .step-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .step-connector {
+    position: absolute;
+    top: 2.5rem;
+    right: -1rem;
+    width: 2rem;
+    height: 2px;
+    background: var(--yellow);
+    z-index: 2;
+    display: none;
+  }
+
+  /* APP DOWNLOAD */
+  .app-section {
+    background: var(--anthracite-2);
+    padding: 6rem 4rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6rem;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+  }
+
+  .app-glow {
+    position: absolute;
+    left: -200px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(245,197,24,0.05) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .app-content { flex: 1; position: relative; z-index: 1; }
+
+  .app-stores {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .store-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--anthracite);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.75rem 1.5rem;
+    color: var(--white);
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+
+  .store-btn:hover {
+    border-color: rgba(245,197,24,0.3);
+    background: var(--anthracite-3);
+  }
+
+  .store-btn-icon { font-size: 1.5rem; }
+
+  .store-btn-text small {
+    display: block;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--muted);
+  }
+
+  .store-btn-text strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .phone-mockup {
+    width: 280px;
+    height: 520px;
+    background: var(--anthracite);
+    border: 2px solid var(--border);
+    border-radius: 36px;
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+  }
+
+  .phone-notch {
+    width: 100px;
+    height: 28px;
+    background: var(--anthracite);
+    border-radius: 0 0 18px 18px;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10;
+    border: 2px solid var(--border);
+    border-top: none;
+  }
+
+  .phone-screen {
+    width: 100%;
+    height: 100%;
+    background: var(--anthracite-2);
+    display: flex;
+    flex-direction: column;
+    padding: 3.5rem 1.25rem 1.5rem;
+  }
+
+  .phone-map-bg {
+    flex: 1;
+    background:
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 40px);
+    border-radius: 12px;
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .map-pin {
+    width: 12px; height: 12px;
+    background: var(--orange);
+    border-radius: 50%;
+    position: absolute;
+    top: 40%;
+    left: 55%;
+    box-shadow: 0 0 0 4px rgba(255,107,43,0.2);
+  }
+
+  .map-car-dot {
+    width: 8px; height: 8px;
+    background: var(--yellow);
+    border-radius: 50%;
+    position: absolute;
+    top: 55%;
+    left: 35%;
+    box-shadow: 0 0 0 3px rgba(245,197,24,0.2);
+  }
+
+  .map-route {
+    position: absolute;
+    top: 40%;
+    left: 35%;
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--yellow), var(--orange));
+    transform: rotate(-8deg);
+    transform-origin: left center;
+  }
+
+  .phone-booking-card {
+    background: var(--anthracite);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border);
+  }
+
+  .phone-booking-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.7rem;
+  }
+
+  .phone-booking-label { color: var(--muted); }
+  .phone-booking-value { color: var(--yellow); font-weight: 600; }
+
+  .phone-booking-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 0.5rem 0;
+  }
+
+  .phone-btn {
+    width: 100%;
+    background: var(--yellow);
+    color: var(--anthracite);
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-top: 0.5rem;
+    cursor: pointer;
+  }
+
+  /* FEATURES */
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .feature-card {
+    background: var(--anthracite-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2rem;
+    transition: border-color 0.2s;
+  }
+
+  .feature-card:hover { border-color: rgba(245,197,24,0.2); }
+
+  .feature-icon {
+    width: 44px; height: 44px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    margin-bottom: 1.25rem;
+    background: rgba(245,197,24,0.08);
+  }
+
+  .feature-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--white);
+  }
+
+  .feature-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* TICKER */
+  .ticker {
+    background: var(--yellow);
+    padding: 0.75rem 0;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .ticker-inner {
+    display: flex;
+    gap: 3rem;
+    animation: ticker 20s linear infinite;
+    white-space: nowrap;
+  }
+
+  .ticker-item {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 3px;
+    color: var(--anthracite);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .ticker-sep {
+    color: rgba(26,28,30,0.3);
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* FOOTER */
+  footer {
+    background: #0f1012;
+    border-top: 1px solid var(--border);
+    padding: 4rem 4rem 2rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 4rem;
+    margin-bottom: 3rem;
+  }
+
+  .footer-brand .logo { margin-bottom: 1rem; font-size: 1.8rem; }
+
+  .footer-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.7;
+    max-width: 280px;
+  }
+
+  .footer-col-title {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 2px;
+    font-size: 1rem;
+    color: var(--white);
+    margin-bottom: 1.25rem;
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--white); }
+
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .footer-badges {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .badge {
+    background: var(--anthracite-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* STATUS */
+  .status-bar {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    z-index: 50;
+    background: var(--anthracite-2);
+    border: 1px solid rgba(245,197,24,0.2);
+    border-radius: 4px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: #4ade80;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  .status-text { color: var(--white); font-weight: 500; }
+  .status-sub { color: var(--muted); font-size: 0.7rem; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.8);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.active { display: flex; }
+
+  .modal {
+    background: var(--anthracite-2);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 2.5rem;
+    width: 90%;
+    max-width: 480px;
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 1.5rem; right: 1.5rem;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 32px; height: 32px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+
+  .modal-close:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    letter-spacing: 2px;
+    color: var(--yellow);
+    margin-bottom: 0.5rem;
+  }
+
+  .modal-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .success-msg {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem 0;
+  }
+
+  .success-msg.visible { display: flex; }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    background: rgba(74,222,128,0.1);
+    border: 1px solid rgba(74,222,128,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #4ade80;
+  }
+
+  .success-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.8rem;
+    letter-spacing: 2px;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+  }
+
+  .success-desc { font-size: 0.9rem; color: var(--muted); }
+
+  /* SCROLL ANIMATIONS */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 2rem; }
+    .nav-links { display: none; }
+    .hero { padding: 7rem 2rem 4rem; }
+    .hero h1 { font-size: 3.5rem; }
+    .hero-stats { display: none; }
+    .section { padding: 5rem 2rem; }
+    .services-grid { grid-template-columns: 1fr; }
+    .booking-inner { grid-template-columns: 1fr; gap: 3rem; }
+    .steps-grid { grid-template-columns: 1fr 1fr; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .app-section { flex-direction: column; padding: 4rem 2rem; gap: 3rem; }
+    .phone-mockup { width: 220px; height: 420px; }
+    .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .booking-section { padding: 5rem 2rem; }
+    .status-bar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <span class="logo-dot"></span>HIZIR
+  </a>
+  <ul class="nav-links">
+    <li><a href="#hizmetler">Hizmetler</a></li>
+    <li><a href="#nasil-calisir">Nasıl Çalışır</a></li>
+    <li><a href="#uygulama">Uygulama</a></li>
+    <li><a href="#rezervasyon">Fiyatlar</a></li>
+    <li><a href="#rezervasyon" class="nav-cta">Taksi Çağır</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg-lines"></div>
+  <div class="hero-bg-glow"></div>
+
+  <div class="hero-tag">
+    <span class="logo-dot"></span>
+    7/24 Aktif Hizmet · Antalya
+  </div>
+
+  <h1>
+    HER<br>
+    <span class="accent">YOLDA</span><br>
+    <span class="accent-orange">YANINDA</span>
+  </h1>
+
+  <p class="hero-desc">
+    Taksi, nakliye, yol yardım ve VIP taşımacılık hizmetleri — tek uygulama, tek numara. Saniyeler içinde çağır, güvenle ulaş.
+  </p>
+
+  <div class="hero-buttons">
+    <a href="#rezervasyon" class="btn-primary">
+      &#9654; Hemen Taksi Çağır
+    </a>
+    <a href="#uygulama" class="btn-secondary">
+      &#8659; Uygulamayı İndir
+    </a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat-item">
+      <div class="stat-number">12K+</div>
+      <div class="stat-label">Aktif Kullanıcı</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">4.9</div>
+      <div class="stat-label">Ortalama Puan</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number">3dk</div>
+      <div class="stat-label">Ortalama Bekleme</div>
+    </div>
+  </div>
+
+  <!-- HERO SVG ART -->
+  <svg class="hero-car-art" viewBox="0 0 500 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="60" y="120" width="380" height="100" rx="20" stroke="#f5c518" stroke-width="3"/>
+    <rect x="100" y="80" width="240" height="70" rx="14" stroke="#f5c518" stroke-width="2"/>
+    <circle cx="140" cy="230" r="35" stroke="#ff6b2b" stroke-width="3"/>
+    <circle cx="360" cy="230" r="35" stroke="#ff6b2b" stroke-width="3"/>
+    <circle cx="140" cy="230" r="18" fill="#ff6b2b" opacity="0.3"/>
+    <circle cx="360" cy="230" r="18" fill="#ff6b2b" opacity="0.3"/>
+    <rect x="160" y="85" width="80" height="60" rx="8" stroke="#f5c518" stroke-width="1.5" opacity="0.5"/>
+    <rect x="260" y="85" width="70" height="60" rx="8" stroke="#f5c518" stroke-width="1.5" opacity="0.5"/>
+    <line x1="0" y1="255" x2="500" y2="255" stroke="#f5c518" stroke-width="1" opacity="0.2"/>
+    <rect x="60" y="148" width="60" height="24" rx="4" fill="#f5c518" opacity="0.15"/>
+    <text x="90" y="165" fill="#f5c518" font-size="10" font-family="monospace" text-anchor="middle" opacity="0.6">34 AKA 0</text>
+  </svg>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">TAKSİ <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">NAKLİYE <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">YOL YARDIM <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">VIP TAŞIMA <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">7/24 AKTİF <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">ANTALYA <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">TAKSİ <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">NAKLİYE <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">YOL YARDIM <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">VIP TAŞIMA <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">7/24 AKTİF <span class="ticker-sep">✦</span></span>
+    <span class="ticker-item">ANTALYA <span class="ticker-sep">✦</span></span>
+  </div>
+</div>
+
+<!-- SERVICES -->
+<section class="section" id="hizmetler">
+  <div class="section-header fade-up">
+    <div class="section-tag">Hizmetlerimiz</div>
+    <h2 class="section-title">NE İSTERSEN,<br>NE ZAMAN İSTERSEN</h2>
+  </div>
+
+  <div class="services-grid fade-up">
+    <div class="service-card" onclick="openBooking('taksi')">
+      <div class="service-num">01</div>
+      <div class="service-icon icon-taxi">🚖</div>
+      <div class="service-name">TAKSİ</div>
+      <p class="service-desc">Profesyonel sürücüler, klimali araçlar. Şehir içi her noktaya hızlı ve güvenli ulaşım. İstanbul, Ankara, İzmir ve daha fazlası.</p>
+      <div class="service-arrow">→</div>
+    </div>
+
+    <div class="service-card" onclick="openBooking('nakliye')">
+      <div class="service-num">02</div>
+      <div class="service-icon icon-move">📦</div>
+      <div class="service-name">NAKLİYE</div>
+      <p class="service-desc">Ev, ofis veya eşya taşımacılığı için deneyimli ekip ve geniş araç filosu. Sigortalı taşıma garantisi ile huzurlu bir taşınma deneyimi.</p>
+      <div class="service-arrow">→</div>
+    </div>
+
+    <div class="service-card" onclick="openBooking('yol-yardim')">
+      <div class="service-num">03</div>
+      <div class="service-icon icon-road">🔧</div>
+      <div class="service-name">YOL YARDIM</div>
+      <p class="service-desc">Arıza, lastik patlaması veya yakıt bitmesi durumlarında 30 dakikada yanınızdayız. 7/24 destek, çekici ve teknik yardım.</p>
+      <div class="service-arrow">→</div>
+    </div>
+
+    <div class="service-card" onclick="openBooking('vip')">
+      <div class="service-num">04</div>
+      <div class="service-icon icon-vip">✦</div>
+      <div class="service-name">VIP TAŞIMA</div>
+      <p class="service-desc">Lüks araçlar, özel şoförler. Havalimanı karşılamaları, kurumsal toplantılar ve özel etkinlikler için premium ulaşım deneyimi.</p>
+      <div class="service-arrow">→</div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section" style="background: var(--anthracite-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);" id="nasil-calisir">
+  <div class="section-header fade-up">
+    <div class="section-tag">Nasıl Çalışır</div>
+    <h2 class="section-title">4 ADIMDA<br>YOLCULUĞUNA BAŞLA</h2>
+  </div>
+
+  <div class="steps-grid fade-up">
+    <div class="step-item">
+      <div class="step-num">01</div>
+      <div class="step-title">KONUMUNU BELİRLE</div>
+      <p class="step-desc">Uygulamayı aç, mevcut konumun otomatik algılanır ya da adres gir.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">02</div>
+      <div class="step-title">HİZMET SEÇ</div>
+      <p class="step-desc">Taksi, nakliye, yol yardım veya VIP — ihtiyacına göre seç.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">03</div>
+      <div class="step-title">ONAYLA & ÖDE</div>
+      <p class="step-desc">Fiyatı gör, onayla. Nakit, kart veya dijital ödeme seçenekleri.</p>
+    </div>
+    <div class="step-item">
+      <div class="step-num">04</div>
+      <div class="step-title">TAKİP ET</div>
+      <p class="step-desc">Aracı canlı haritada izle, sürücünle iletişime geç, güvenle ulaş.</p>
+    </div>
+  </div>
+</section>
+
+<!-- BOOKING -->
+<section class="booking-section" id="rezervasyon">
+  <div class="booking-inner">
+    <div class="fade-up">
+      <div class="section-tag">Online Rezervasyon</div>
+      <h2 class="section-title" style="margin-bottom: 1.5rem;">HEMEN<br>REZERVASYON<br>YAP</h2>
+      <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.7; margin-bottom: 2rem;">
+        Web üzerinden hızlı rezervasyon yap. Sürücün atandıktan sonra SMS ve e-posta ile bildirim alacaksın. API entegrasyonu sayesinde gerçek zamanlı fiyatlandırma.
+      </p>
+
+      <div class="features-grid" style="grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0;">
+        <div class="feature-card">
+          <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">🔒</div>
+          <div class="feature-title" style="font-size: 0.9rem;">Güvenli Ödeme</div>
+          <div class="feature-desc" style="font-size: 0.8rem;">SSL şifrelemeli ödeme</div>
+        </div>
+        <div class="feature-card">
+          <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">📍</div>
+          <div class="feature-title" style="font-size: 0.9rem;">Canlı Takip</div>
+          <div class="feature-desc" style="font-size: 0.8rem;">Aracını haritada izle</div>
+        </div>
+        <div class="feature-card">
+          <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">⚡</div>
+          <div class="feature-title" style="font-size: 0.9rem;">Anlık Atama</div>
+          <div class="feature-desc" style="font-size: 0.8rem;">Ort. 90 sn. içinde sürücü</div>
+        </div>
+        <div class="feature-card">
+          <div style="font-size: 1.25rem; margin-bottom: 0.5rem;">★</div>
+          <div class="feature-title" style="font-size: 0.9rem;">4.9/5 Puan</div>
+          <div class="feature-desc" style="font-size: 0.8rem;">12.000+ mutlu müşteri</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-form-wrapper fade-up" id="bookingForm">
+      <div class="form-title">TAKSİ ÇAĞIR</div>
+      <div class="form-subtitle">// API ile gerçek zamanlı fiyat</div>
+
+      <div class="service-tabs" id="serviceTabs">
+        <button class="service-tab active" onclick="selectService(this,'taksi')">Taksi</button>
+        <button class="service-tab" onclick="selectService(this,'nakliye')">Nakliye</button>
+        <button class="service-tab" onclick="selectService(this,'yol-yardim')">Yol Yardım</button>
+        <button class="service-tab" onclick="selectService(this,'vip')">VIP</button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Nereden</label>
+        <input type="text" class="form-input" id="pickup" placeholder="Alış noktası girin..." oninput="calcPrice()">
+      </div>
+
+      <div class="form-divider">↕ ROTA</div>
+
+      <div class="form-group">
+        <label class="form-label">Nereye</label>
+        <input type="text" class="form-input" id="dropoff" placeholder="Varış noktası girin..." oninput="calcPrice()">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tarih</label>
+          <input type="date" class="form-input" id="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Saat</label>
+          <input type="time" class="form-input" id="time">
+        </div>
+      </div>
+
+      <div class="form-group" id="extraField">
+        <label class="form-label">Yolcu Sayısı</label>
+        <select class="form-select" id="passengers">
+          <option value="1">1 Yolcu</option>
+          <option value="2">2 Yolcu</option>
+          <option value="3">3 Yolcu</option>
+          <option value="4">4 Yolcu</option>
+          <option value="5+">5+ Yolcu</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ad Soyad</label>
+        <input type="text" class="form-input" id="name" placeholder="Ad Soyad">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input type="tel" class="form-input" id="phone" placeholder="+90 5xx xxx xx xx">
+      </div>
+
+      <div class="price-estimate">
+        <div>
+          <div class="price-label">Tahmini Ücret</div>
+          <div class="price-note" id="priceNote">Adres girildiğinde hesaplanır</div>
+        </div>
+        <div>
+          <div class="price-value" id="priceDisplay">-- ₺</div>
+        </div>
+      </div>
+
+      <button class="btn-book" onclick="submitBooking()">
+        &#9654; REZERVASYONU TAMAMLA
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section fade-up">
+  <div class="section-header">
+    <div class="section-tag">Neden DirectGo?</div>
+    <h2 class="section-title">FARKIMIZ<br>BELLİ</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-title">Sigortalı Sürücüler</div>
+      <p class="feature-desc">Tüm sürücülerimiz kimlik doğrulamalı, sigortalı ve düzenli olarak denetlenmektedir.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-title">Anlık Bağlantı</div>
+      <p class="feature-desc">Yapay zeka destekli eşleştirme sistemi ile en yakın sürücüyü saniyeler içinde bulur.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">💳</div>
+      <div class="feature-title">Çoklu Ödeme</div>
+      <p class="feature-desc">Nakit, kredi kartı, banka kartı ve dijital cüzdanlar ile ödeme yapabilirsiniz.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-title">Canlı Takip</div>
+      <p class="feature-desc">Aracınızı haritada gerçek zamanlı takip edin. Sürücü bilgileri ve iletişim tek ekranda.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🎯</div>
+      <div class="feature-title">Şeffaf Fiyat</div>
+      <p class="feature-desc">Gizli ücret yok. Yolculuktan önce kesin fiyatınızı görün, onaylayın.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">🔔</div>
+      <div class="feature-title">7/24 Destek</div>
+      <p class="feature-desc">Gün veya gece, her sorununuz için canlı destek hattımız her zaman aktif.</p>
+    </div>
+  </div>
+</section>
+
+<!-- APP SECTION -->
+<section class="app-section" id="uygulama">
+  <div class="app-glow"></div>
+
+  <div class="app-content fade-up">
+    <div class="section-tag">Mobil Uygulama</div>
+    <h2 class="section-title" style="margin-bottom: 1rem;">CEBİNDE<br>TAŞI</h2>
+    <p style="color: var(--muted); font-size: 0.95rem; line-height: 1.7; max-width: 400px; margin-bottom: 1rem;">
+      iOS ve Android uygulamalarımızı indir. Canlı harita, anlık bildirimler, kayıtlı adresler ve daha fazlası ile ulaşımını kolaylaştır.
+    </p>
+
+    <div style="display: flex; gap: 2rem; margin-bottom: 2rem;">
+      <div>
+        <div style="font-family: 'Bebas Neue'; font-size: 2rem; color: var(--yellow); letter-spacing: 2px;">50K+</div>
+        <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">İndirme</div>
+      </div>
+      <div>
+        <div style="font-family: 'Bebas Neue'; font-size: 2rem; color: var(--yellow); letter-spacing: 2px;">4.9★</div>
+        <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">App Store</div>
+      </div>
+      <div>
+        <div style="font-family: 'Bebas Neue'; font-size: 2rem; color: var(--yellow); letter-spacing: 2px;">4.8★</div>
+        <div style="font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px;">Google Play</div>
+      </div>
+    </div>
+
+    <div class="app-stores">
+      <a href="#" class="store-btn">
+        <span class="store-btn-icon">🍎</span>
+        <div class="store-btn-text">
+          <small>App Store'dan indir</small>
+          <strong>iPhone & iPad</strong>
+        </div>
+      </a>
+      <a href="#" class="store-btn">
+        <span class="store-btn-icon">▶</span>
+        <div class="store-btn-text">
+          <small>Google Play'den indir</small>
+          <strong>Android</strong>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- PHONE MOCKUP -->
+  <div class="phone-mockup">
+    <div class="phone-notch"></div>
+    <div class="phone-screen">
+      <div style="font-family: 'Bebas Neue'; font-size: 1rem; letter-spacing: 3px; color: var(--yellow); margin-bottom: 0.5rem;">DirectGo</div>
+      <div style="font-size: 0.65rem; color: var(--muted); margin-bottom: 0.75rem; font-family: 'JetBrains Mono';">Sürücü atandı · 2.3 km</div>
+      <div class="phone-map-bg">
+        <div class="map-pin"></div>
+        <div class="map-car-dot"></div>
+        <div class="map-route"></div>
+      </div>
+      <div class="phone-booking-card">
+        <div class="phone-booking-row">
+          <span class="phone-booking-label">Sürücü</span>
+          <span style="font-size: 0.7rem; color: var(--white); font-weight: 500;">Ahmet K. ★4.9</span>
+        </div>
+        <div class="phone-booking-divider"></div>
+        <div class="phone-booking-row">
+          <span class="phone-booking-label">Araç</span>
+          <span style="font-size: 0.7rem; color: var(--white);">34 AKA 034</span>
+        </div>
+        <div class="phone-booking-row" style="margin-top: 4px;">
+          <span class="phone-booking-label">Tahmini Varış</span>
+          <span class="phone-booking-value">4 dk</span>
+        </div>
+        <button class="phone-btn">Sürücüyü Ara</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <a href="#" class="logo">
+        <span class="logo-dot"></span>DirectGo
+      </a>
+      <p class="footer-desc" style="margin-top: 1rem;">
+        Antalya merkezli ulaşım teknolojisi şirketi. Taksi, nakliye, yol yardım ve VIP taşımacılıkta güvenilir çözüm ortağınız.
+      </p>
+      <div style="margin-top: 1.5rem; font-family: 'JetBrains Mono'; font-size: 0.75rem; color: var(--muted);">
+        ☎ 0850 XXX XX XX
+      </div>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Hizmetler</div>
+      <ul class="footer-links">
+        <li><a href="#" onclick="openBooking('taksi');return false;">Taksi</a></li>
+        <li><a href="#" onclick="openBooking('nakliye');return false;">Nakliye</a></li>
+        <li><a href="#" onclick="openBooking('yol-yardim');return false;">Yol Yardım</a></li>
+        <li><a href="#" onclick="openBooking('vip');return false;">VIP Taşıma</a></li>
+        <li><a href="#">Kurumsal</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Şirket</div>
+      <ul class="footer-links">
+        <li><a href="#">Hakkımızda</a></li>
+        <li><a href="#">Sürücü Ol</a></li>
+        <li><a href="#">Kariyer</a></li>
+        <li><a href="#">Blog</a></li>
+        <li><a href="#">İletişim</a></li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="footer-col-title">Yasal</div>
+      <ul class="footer-links">
+        <li><a href="#">Gizlilik Politikası</a></li>
+        <li><a href="#">Kullanım Koşulları</a></li>
+        <li><a href="#">Çerez Politikası</a></li>
+        <li><a href="#">KVKK</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2026 DirectGo Teknoloji A.Ş. — Tüm hakları saklıdır.</div>
+    <div class="footer-badges">
+      <div class="badge">ISO 9001</div>
+      <div class="badge">SSL Secured</div>
+      <div class="badge">KVKK Uyumlu</div>
+    </div>
+  </div>
+</footer>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-dot"></div>
+  <div>
+    <div class="status-text">Sistem Aktif</div>
+    <div class="status-sub">34 sürücü müsait</div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="bookingModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+
+    <div id="modalForm">
+      <div class="modal-title" id="modalTitle">REZERVASYON</div>
+      <div class="modal-subtitle" id="modalSubtitle">Hizmet bilgilerini girin</div>
+
+      <div class="form-group">
+        <label class="form-label">Ad Soyad</label>
+        <input type="text" class="form-input" id="modalName" placeholder="Ad Soyad">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Telefon</label>
+        <input type="tel" class="form-input" id="modalPhone" placeholder="+90 5xx xxx xx xx">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Alış Noktası</label>
+        <input type="text" class="form-input" id="modalPickup" placeholder="Adres girin...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tarih & Saat</label>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+          <input type="date" class="form-input" id="modalDate">
+          <input type="time" class="form-input" id="modalTime">
+        </div>
+      </div>
+
+      <button class="btn-book" onclick="submitModal()">
+        &#9654; ONAYLA
+      </button>
+    </div>
+
+    <div class="success-msg" id="successMsg">
+      <div class="success-icon">✓</div>
+      <div class="success-title">REZERVASYON ALINDI!</div>
+      <p class="success-desc">En yakın sürücünüz birkaç dakika içinde atanacak. SMS ile bilgilendirileceksiniz.</p>
+      <div style="margin-top: 1.5rem; font-family: 'JetBrains Mono'; font-size: 0.8rem; color: var(--muted);">
+        Ref: #HZR-<span id="refNum"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let selectedService = 'taksi';
+  const servicePrices = { taksi: 80, nakliye: 350, 'yol-yardim': 150, vip: 200 };
+  const serviceNames = { taksi: 'TAKSİ', nakliye: 'NAKLİYE', 'yol-yardim': 'YOL YARDIM', vip: 'VIP TAŞIMA' };
+
+  function selectService(el, svc) {
+    selectedService = svc;
+    document.querySelectorAll('.service-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    document.querySelector('.form-title').textContent = serviceNames[svc] + ' ÇAĞIR';
+    calcPrice();
+    const extra = document.getElementById('extraField');
+    if (svc === 'nakliye') {
+      extra.querySelector('.form-label').textContent = 'Taşıma Türü';
+      extra.querySelector('select').innerHTML = '<option>Ev Taşıma</option><option>Ofis Taşıma</option><option>Eşya Taşıma</option>';
+    } else if (svc === 'vip') {
+      extra.querySelector('.form-label').textContent = 'Araç Sınıfı';
+      extra.querySelector('select').innerHTML = '<option>Business Class</option><option>First Class</option><option>Luxury Van</option>';
+    } else if (svc === 'yol-yardim') {
+      extra.querySelector('.form-label').textContent = 'Arıza Türü';
+      extra.querySelector('select').innerHTML = '<option>Lastik Patlaması</option><option>Yakıt Bitmesi</option><option>Akü Sorunları</option><option>Motor Arızası</option>';
+    } else {
+      extra.querySelector('.form-label').textContent = 'Yolcu Sayısı';
+      extra.querySelector('select').innerHTML = '<option>1 Yolcu</option><option>2 Yolcu</option><option>3 Yolcu</option><option>4 Yolcu</option><option>5+ Yolcu</option>';
+    }
+  }
+
+  function calcPrice() {
+    const p = document.getElementById('pickup').value;
+    const d = document.getElementById('dropoff').value;
+    if (p.length > 3 && d.length > 3) {
+      const base = servicePrices[selectedService];
+      const estimate = base + Math.floor(Math.random() * 40) + p.length + d.length;
+      document.getElementById('priceDisplay').textContent = estimate + ' ₺';
+      document.getElementById('priceNote').textContent = 'Tahmini mesafe bazlı';
+    } else {
+      document.getElementById('priceDisplay').textContent = '-- ₺';
+      document.getElementById('priceNote').textContent = 'Adres girildiğinde hesaplanır';
+    }
+  }
+
+  function submitBooking() {
+    const name = document.getElementById('name').value;
+    const phone = document.getElementById('phone').value;
+    const pickup = document.getElementById('pickup').value;
+    if (!name || !phone || !pickup) {
+      alert('Lütfen ad soyad, telefon ve alış noktasını doldurun.');
+      return;
+    }
+    showSuccess('booking');
+  }
+
+  function showSuccess(src) {
+    if (src === 'booking') {
+      const form = document.getElementById('bookingForm');
+      form.innerHTML = `
+        <div style="text-align:center; padding: 3rem 0;">
+          <div style="width:64px;height:64px;background:rgba(74,222,128,0.1);border:1px solid rgba(74,222,128,0.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:#4ade80;margin:0 auto 1.5rem;">✓</div>
+          <div style="font-family:'Bebas Neue';font-size:2rem;letter-spacing:2px;color:var(--white);margin-bottom:0.5rem;">REZERVASYON ALINDI!</div>
+          <p style="font-size:0.9rem;color:var(--muted);margin-bottom:1.5rem;">En yakın sürücünüz birkaç dakika içinde atanacak. SMS ile bilgilendirileceksiniz.</p>
+          <div style="font-family:'JetBrains Mono';font-size:0.8rem;color:var(--muted);">Ref: #HZR-${Math.floor(Math.random()*90000+10000)}</div>
+          <button class="btn-secondary" style="margin:1.5rem auto 0;display:flex;" onclick="location.reload()">Yeni Rezervasyon</button>
+        </div>
+      `;
+    }
+  }
+
+  function openBooking(svc) {
+    selectedService = svc;
+    document.getElementById('modalTitle').textContent = serviceNames[svc];
+    document.getElementById('modalSubtitle').textContent = svc === 'yol-yardim' ? 'Konum bilginizi girin' : svc === 'nakliye' ? 'Taşıma detaylarını girin' : 'Rezervasyon bilgilerini girin';
+    document.getElementById('bookingModal').classList.add('active');
+    document.getElementById('modalForm').style.display = 'block';
+    document.getElementById('successMsg').classList.remove('visible');
+    document.getElementById('modalDate').valueAsDate = new Date();
+  }
+
+  function closeModal() {
+    document.getElementById('bookingModal').classList.remove('active');
+  }
+
+  function submitModal() {
+    const name = document.getElementById('modalName').value;
+    const phone = document.getElementById('modalPhone').value;
+    if (!name || !phone) { alert('Ad soyad ve telefon zorunludur.'); return; }
+    document.getElementById('modalForm').style.display = 'none';
+    document.getElementById('refNum').textContent = Math.floor(Math.random()*90000+10000);
+    document.getElementById('successMsg').classList.add('visible');
+  }
+
+  document.getElementById('bookingModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Set today's date on form
+  document.getElementById('date').valueAsDate = new Date();
+  const now = new Date();
+  document.getElementById('time').value = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+  // Scroll animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+  // Active nav highlight
+  window.addEventListener('scroll', () => {
+    const nav = document.querySelector('nav');
+    nav.style.background = window.scrollY > 50 ? 'rgba(26,28,30,0.98)' : 'rgba(26,28,30,0.9)';
+  });
+</script>
+</body>
+</html>
